@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:blursport/widgets/left_drawer.dart';
+import 'package:blursport/product_form.dart';
 
 class MyHomePage extends StatelessWidget {
     MyHomePage({super.key});
@@ -9,8 +11,8 @@ class MyHomePage extends StatelessWidget {
 
     final List<ItemHomepage> items = [
     ItemHomepage("All Products", Icons.newspaper,Colors.blue),
-    ItemHomepage("My Products", Icons.add,Colors.green),
-    ItemHomepage("Create Product", Icons.logout,Colors.red),
+    ItemHomepage("My Products", Icons.login,Colors.green),
+    ItemHomepage("Create Product", Icons.add,Colors.red),
   ];
 
    @override
@@ -27,9 +29,11 @@ class MyHomePage extends StatelessWidget {
             fontWeight: FontWeight.bold,
           ),
         ),
+      
         // Warna latar belakang AppBar diambil dari skema warna tema aplikasi.
         backgroundColor: Theme.of(context).colorScheme.primary,
       ),
+      drawer: const LeftDrawer(),
       // Body halaman dengan padding di sekelilingnya.
       body: Padding(
         padding: const EdgeInsets.all(16.0),
@@ -110,13 +114,21 @@ class ItemCard extends StatelessWidget {
 
       child: InkWell(
         // Aksi ketika kartu ditekan.
-        onTap: () {
-          // Menampilkan pesan SnackBar saat kartu ditekan.
-          ScaffoldMessenger.of(context)
-            ..hideCurrentSnackBar()
-            ..showSnackBar(
-              SnackBar(content: Text("Kamu telah menekan tombol ${item.name}!"))
+       onTap: () {
+          if (item.name == "Create Product") {
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => const ProductFormPage(),
+              ),
             );
+          } else {
+            ScaffoldMessenger.of(context)
+              ..hideCurrentSnackBar()
+              ..showSnackBar(
+                SnackBar(content: Text("Kamu telah menekan tombol ${item.name}!"))
+              );
+          }
         },
         // Container untuk menyimpan Icon dan Text
         child: Container(
