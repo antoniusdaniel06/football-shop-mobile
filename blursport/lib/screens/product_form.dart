@@ -1,5 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:blursport/widgets/left_drawer.dart';
+import 'dart:convert';
+import 'package:provider/provider.dart';
+import 'package:pbp_django_auth/pbp_django_auth.dart';
+import 'package:blursport/screens/menu.dart';
 
 class ProductFormPage extends StatefulWidget {
   const ProductFormPage({super.key});
@@ -26,6 +30,8 @@ class _ProductFormPageState extends State<ProductFormPage> {
 
   @override
   Widget build(BuildContext context) {
+    final request = context.watch<CookieRequest>();
+
     return Scaffold(
       appBar: AppBar(
         title: const Center(
@@ -137,7 +143,7 @@ class _ProductFormPageState extends State<ProductFormPage> {
                 ),
               ),
 
-              // THUMBNAIL (OPSIONAL)
+              // THUMBNAIL (optional)
               Padding(
                 padding: const EdgeInsets.all(8.0),
                 child: TextFormField(
@@ -154,7 +160,7 @@ class _ProductFormPageState extends State<ProductFormPage> {
                 ),
               ),
 
-              // FEATURED
+              // FEATURED SWITCH
               Padding(
                 padding: const EdgeInsets.all(8.0),
                 child: SwitchListTile(
@@ -173,33 +179,37 @@ class _ProductFormPageState extends State<ProductFormPage> {
                   style: ButtonStyle(
                     backgroundColor: MaterialStateProperty.all(Colors.indigo),
                   ),
-                  onPressed: () {
+                  onPressed: () async {
                     if (_formKey.currentState!.validate()) {
-                      showDialog(
-                        context: context,
-                        builder: (_) => AlertDialog(
-                          title: const Text('Produk berhasil disimpan'),
-                          content: Column(
-                            mainAxisSize: MainAxisSize.min,
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text('Nama: $_name'),
-                              Text('Harga: $_price'),
-                              Text('Kategori: $_category'),
-                              Text('Deskripsi: $_description'),
-                              Text('Thumbnail: ${_thumbnail.isEmpty ? "Tidak ada" : _thumbnail}'),
-                              Text('Unggulan: ${_isFeatured ? "Ya" : "Tidak"}'),
-                            ],
-                          ),
-                          actions: [
-                            TextButton(
-                              onPressed: () => Navigator.pop(context),
-                              child: const Text("OK"),
-                            )
-                          ],
-                        ),
+                      
+                      final response = await request.postJson(
+                        "http://localhost:8000/create-product-flutter/", 
+                        jsonEncode({
+                          "name": _name,
+                          "price": _price,
+                          "description": _description,
+                          "thumbnail": _thumbnail,
+                          "category": _category,
+                          "is_featured": _isFeatured,
+                        }),
                       );
-                      _formKey.currentState!.reset();
+
+                      if (context.mounted) {
+                        if (response['status'] == 'success') {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(content: Text("Produk berhasil disimpan!")),
+                          );
+
+                          Navigator.pushReplacement(
+                            context,
+                            MaterialPageRoute(builder: (context) => MyHomePage()),
+                          );
+                        } else {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(content: Text("Terjadi kesalahan, coba lagi.")),
+                          );
+                        }
+                      }
                     }
                   },
                   child: const Text("Save", style: TextStyle(color: Colors.white)),
